@@ -10,5 +10,17 @@ dist/
 .DS_Store
 *.backup
 
+# Local Premiere experiments and generated overlays
+scratch/
+exports/
+previews/
+fact_check_cards/
+frame_*.png
+frame_*.png.png
+title_*.png
+title_*.mov
+title_*preview*.png
+title_*preview*.png.png
+
 # Worktrees
 .worktrees/
