@@ -35,10 +35,51 @@ This fork should keep those core pieces, then add Axios-specific editing workflo
 
 ## Editor Setup Target
 
-The editor-facing path should eventually be:
+The first editor-facing path is now:
 
 1. Install Node if needed.
-2. Run one setup script.
+2. Clone this repository.
+3. Run `npm run setup:axios:mac -- --yes`.
+4. Open Premiere Pro.
+5. Open `Window > Extensions > MCP Bridge (CEP)`.
+6. Confirm the temp directory is `/tmp/premiere-mcp-bridge`.
+7. Click `Save Configuration`, `Start Bridge`, then `Test Connection`.
+8. Restart Codex so it reloads the `premiere_pro` MCP server.
+
+The first setup script:
+
+- Installs Node dependencies.
+- Builds the MCP server.
+- Installs the Premiere CEP panel.
+- Enables Adobe CEP debug mode after warning the editor.
+- Creates the bridge temp directory.
+- Registers the Codex MCP server when the Codex CLI is available.
+
+## Editor Update Target
+
+The update path is:
+
+1. Open Terminal in this repository.
+2. Run `npm run update:axios:mac -- --yes`.
+3. Restart Codex.
+4. Reload the Premiere CEP panel if it is already open.
+5. Click `Test Connection`.
+
+The update script:
+
+- Refuses to pull over uncommitted local edits.
+- Fast-forwards the current branch from `origin`.
+- Reinstalls dependencies.
+- Rebuilds the MCP server.
+- Reinstalls the CEP panel.
+- Refreshes the Codex MCP registration.
+
+## Longer-Term Setup Target
+
+The future polished path should become:
+
+1. Install Node if needed.
+2. Run one packagd command, such as `npx axios-premiere-mcp setup`.
 3. Open Premiere Pro.
 4. Open `Window > Extensions > MCP Bridge (CEP)`.
 5. Click `Start Bridge`.

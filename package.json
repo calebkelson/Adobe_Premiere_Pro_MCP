@@ -9,6 +9,8 @@
     "dev": "tsc --watch",
     "start": "node dist/index.js",
     "setup:mac": "bash ./scripts/install-macos.sh",
+    "setup:axios:mac": "bash ./scripts/setup-axios-editor-mac.sh",
+    "update:axios:mac": "bash ./scripts/update-axios-editor-mac.sh",
     "setup:doctor": "bash ./scripts/doctor-macos.sh",
     "uninstall:mac": "bash ./scripts/uninstall-macos.sh",
     "test": "jest",
