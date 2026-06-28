@@ -26,7 +26,7 @@ describe('Axios asset storage', () => {
     expect(result.taskRoot).toBe('workspace/projects/the-axios-show/thumbnail');
     expect(result.suggestedPath).toBe('workspace/projects/the-axios-show/thumbnail/graphics/2026-06-28/mike-allen-ai-jobs-thumbnail.png');
     expect(result.namingRules).toContain(
-      'For thumbnails, create an editable workspace package with the final PNG plus source frames and separate transparent components when practical.'
+      'For thumbnails, create a complete finished PNG first, then an editable workspace package with source frames and separate transparent components when practical.'
     );
   });
 });

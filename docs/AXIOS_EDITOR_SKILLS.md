@@ -32,7 +32,7 @@ These skills start as structured review/planning tools. They can list the availa
 | Highlight Finder | Scores segments for hooks, quotes, reactions, and memorable moments. |
 | Interview Cleaner | Finds filler, pauses, repeats, tangents, and rambling while preserving natural flow. |
 | Export Optimizer | Recommends export settings, aspect ratios, captions, and deliverables by platform. |
-| Thumbnail & Title Assistant | Suggests titles, thumbnail text, key frame candidates, and editable thumbnail asset packages. |
+| Thumbnail & Title Assistant | Creates complete thumbnail concepts, title options, key frame candidates, and editable thumbnail asset packages. |
 | Music & Pacing Advisor | Recommends music starts, stops, builds, fades, and ducking moments. |
 | Brand Compliance Checker | Checks fonts, colors, lower thirds, logos, captions, and visual standards. |
 
@@ -54,4 +54,4 @@ When editors repeatedly ask for the same workflow, use `axios_plan_custom_editor
 
 Generated frames, title graphics, thumbnail packages, fact-check cards, social exports, and analysis JSON should go under `workspace/projects/<project-slug>/`. Use `axios_plan_asset_storage` to keep file paths predictable.
 
-Thumbnail work should always include an editable package, not just a flattened PNG. Save the final PNG plus source/reference frames and separate transparent components when practical.
+Thumbnail work should produce a complete finished PNG first, then an editable package. Save the final PNG plus source/reference frames and separate transparent components when practical.

@@ -245,9 +245,9 @@ export const AXIOS_EDITOR_SKILLS: readonly AxiosEditorSkill[] = [
     id: 'thumbnail_title_assistant',
     name: 'Thumbnail & Title Assistant',
     category: 'social',
-    description: 'Suggests compelling titles, thumbnail text, key frame candidates, and editable thumbnail asset packages based on the strongest moments in the edit.',
+    description: 'Creates complete thumbnail concepts, compelling titles, key frame candidates, and editable thumbnail asset packages based on the strongest moments in the edit.',
     evidenceToReview: ['strongest moments', 'faces/reactions', 'key frames', 'topic stakes', 'platform target', 'editable thumbnail components'],
-    primaryOutputs: ['title options', 'thumbnail text', 'key frame candidates', 'editable thumbnail package plan', 'A/B test options'],
+    primaryOutputs: ['title options', 'complete thumbnail concept', 'key frame candidates', 'editable thumbnail package plan', 'A/B test options'],
     markerTypes: ['thumbnail_frame', 'title_hook', 'key_reaction', 'candidate_frame'],
     recommendedPremiereTools: ['export_frame', 'read_sequence_captions', 'add_marker'],
     requiresBrandProfile: true

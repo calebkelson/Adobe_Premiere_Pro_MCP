@@ -80,7 +80,7 @@ export function buildAxiosAssetStoragePlan(options: AxiosAssetStoragePlanOptions
       'Keep source assets separate from generated assets.',
       'Group generated frames, graphics, and analysis files by project, task, asset kind, and date.',
       'Use lowercase slug filenames so files are easy to reference from Premiere, scripts, and MCP tools.',
-      'For thumbnails, create an editable workspace package with the final PNG plus source frames and separate transparent components when practical.',
+      'For thumbnails, create a complete finished PNG first, then an editable workspace package with source frames and separate transparent components when practical.',
       'Treat workspace/projects as disposable local output unless a file is promoted into an approved template or asset folder.'
     ]
   };

@@ -52,13 +52,15 @@ This keeps source media, generated graphics, exports, cache files, and analysis 
 
 ## Thumbnail Packages
 
-When generating a thumbnail, do not stop at a single flattened PNG. Create an editable workspace package so editors can revise it later.
+When generating a thumbnail, make the finished thumbnail first. The final PNG should be a complete usable image that includes the requested subject/design and can stand on its own.
+
+After the finished image exists, create an editable workspace package so editors can revise it later. Editability is an addition to the completed thumbnail, not a replacement for it.
 
 At minimum, save:
 
 - the final export PNG
 - the source frame or reference image used for the subject
-- separate transparent PNG components when practical, such as subject/shadow, background, headline text, banners, icons, and overlays
+- separate transparent PNG components when practical, such as the visible subject image/cutout, background, headline text, banners, icons, and overlays
 - a short manifest or README that lists the files and the intended edit order
 
 Use a local workspace path such as:
