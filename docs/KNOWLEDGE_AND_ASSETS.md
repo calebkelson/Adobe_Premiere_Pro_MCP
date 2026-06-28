@@ -49,3 +49,22 @@ workspace/projects/<project-slug>/
 ```
 
 This keeps source media, generated graphics, exports, cache files, and analysis artifacts from spreading across the repo root.
+
+## Thumbnail Packages
+
+When generating a thumbnail, do not stop at a single flattened PNG. Create an editable workspace package so editors can revise it later.
+
+At minimum, save:
+
+- the final export PNG
+- the source frame or reference image used for the subject
+- separate transparent PNG components when practical, such as subject/shadow, background, headline text, banners, icons, and overlays
+- a short manifest or README that lists the files and the intended edit order
+
+Use a local workspace path such as:
+
+```text
+workspace/projects/<project-slug>/thumbnail/
+```
+
+Flattened PNGs are useful for upload and review, but the workspace package is the source of truth for future edits.

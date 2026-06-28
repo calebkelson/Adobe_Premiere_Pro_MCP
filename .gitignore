@@ -30,6 +30,7 @@ Axios_Brand_Guidelines*.pdf
 
 # Local generated media and analysis workspace
 workspace/projects/
+workspace/thumbnails/
 workspace/tmp/
 workspace/cache/
 

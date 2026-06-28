@@ -13,4 +13,20 @@ describe('Axios asset storage', () => {
     expect(result.projectRoot).toBe('workspace/projects/ai-leaders-interview');
     expect(result.suggestedPath).toBe('workspace/projects/ai-leaders-interview/fact_check/graphics/2026-06-28/fact-check-card-01.png');
   });
+
+  it('includes editable package guidance for thumbnail work', () => {
+    const result = buildAxiosAssetStoragePlan({
+      projectSlug: 'The Axios Show',
+      taskType: 'thumbnail',
+      assetKind: 'graphics',
+      filename: 'Mike Allen AI Jobs Thumbnail.png',
+      date: '2026-06-28'
+    });
+
+    expect(result.taskRoot).toBe('workspace/projects/the-axios-show/thumbnail');
+    expect(result.suggestedPath).toBe('workspace/projects/the-axios-show/thumbnail/graphics/2026-06-28/mike-allen-ai-jobs-thumbnail.png');
+    expect(result.namingRules).toContain(
+      'For thumbnails, create an editable workspace package with the final PNG plus source frames and separate transparent components when practical.'
+    );
+  });
 });

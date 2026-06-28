@@ -74,11 +74,11 @@ export class AxiosEditorTools {
       },
       {
         name: 'axios_plan_asset_storage',
-        description: 'Returns the standard local folder and filename plan for generated frames, graphics, exports, analysis, and other video assets.',
+        description: 'Returns the standard local folder and filename plan for generated frames, graphics, thumbnails, exports, analysis, and other video assets.',
         inputSchema: z.object({
           projectSlug: z.string().describe('Short project or show slug, such as the-axios-show or ai-leaders-interview.'),
           assetKind: z.enum(AXIOS_ASSET_KINDS).optional().describe('Asset kind such as generated, frames, graphics, exports, or analysis.'),
-          taskType: z.enum(AXIOS_ASSET_TASK_TYPES).optional().describe('Workflow type such as fact_check, title_graphics, social_clip, or brand_review.'),
+          taskType: z.enum(AXIOS_ASSET_TASK_TYPES).optional().describe('Workflow type such as fact_check, title_graphics, thumbnail, social_clip, or brand_review.'),
           filename: z.string().optional().describe('Optional source or desired filename.'),
           extension: z.string().optional().describe('Optional file extension override.'),
           date: z.string().optional().describe('Optional YYYY-MM-DD date folder. Defaults to today.')

@@ -11,7 +11,7 @@ These skills start as structured review/planning tools. They can list the availa
 - `axios_plan_custom_editor_skill`: drafts a new skill from repeated editor asks.
 - `axios_get_brand_knowledge_status`: checks whether private Axios brand knowledge is installed locally.
 - `axios_read_brand_profile`: reads the local private brand profile when available.
-- `axios_plan_asset_storage`: suggests organized paths for generated frames, graphics, exports, and analysis.
+- `axios_plan_asset_storage`: suggests organized paths for generated frames, graphics, thumbnails, exports, and analysis.
 
 ## Skill Catalog
 
@@ -32,7 +32,7 @@ These skills start as structured review/planning tools. They can list the availa
 | Highlight Finder | Scores segments for hooks, quotes, reactions, and memorable moments. |
 | Interview Cleaner | Finds filler, pauses, repeats, tangents, and rambling while preserving natural flow. |
 | Export Optimizer | Recommends export settings, aspect ratios, captions, and deliverables by platform. |
-| Thumbnail & Title Assistant | Suggests titles, thumbnail text, and key frame candidates. |
+| Thumbnail & Title Assistant | Suggests titles, thumbnail text, key frame candidates, and editable thumbnail asset packages. |
 | Music & Pacing Advisor | Recommends music starts, stops, builds, fades, and ducking moments. |
 | Brand Compliance Checker | Checks fonts, colors, lower thirds, logos, captions, and visual standards. |
 
@@ -52,4 +52,6 @@ When editors repeatedly ask for the same workflow, use `axios_plan_custom_editor
 
 ## Generated Asset Storage
 
-Generated frames, title graphics, fact-check cards, social exports, and analysis JSON should go under `workspace/projects/<project-slug>/`. Use `axios_plan_asset_storage` to keep file paths predictable.
+Generated frames, title graphics, thumbnail packages, fact-check cards, social exports, and analysis JSON should go under `workspace/projects/<project-slug>/`. Use `axios_plan_asset_storage` to keep file paths predictable.
+
+Thumbnail work should always include an editable package, not just a flattened PNG. Save the final PNG plus source/reference frames and separate transparent components when practical.
