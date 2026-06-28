@@ -67,7 +67,7 @@ class MCPPremiereProServer {
     this.tools = new PremiereProTools(this.bridge);
     this.axiosTools = new AxiosEditorTools();
     this.resources = new PremiereProResources(this.bridge);
-    this.prompts = new PremiereProPrompts8);
+    this.prompts = new PremiereProPrompts();
 
     this.setupHandlers();
   }
