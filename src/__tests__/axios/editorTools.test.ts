@@ -12,6 +12,10 @@ describe('AxiosEditorTools', () => {
 
     expect(toolNames).toContain('axios_list_editor_skills');
     expect(toolNames).toContain('axios_plan_editor_skill_review');
+    expect(toolNames).toContain('axios_get_brand_knowledge_status');
+    expect(toolNames).toContain('axios_read_brand_profile');
+    expect(toolNames).toContain('axios_plan_custom_editor_skill');
+    expect(toolNames).toContain('axios_plan_asset_storage');
   });
 
   it('lists Axios editor assistant skills', () => {
@@ -57,5 +61,47 @@ describe('AxiosEditorTools', () => {
     expect(result.success).toBe(false);
     expect(result.error).toContain('was not found');
     expect(result.availableSkills).toContain('story_analyst');
+  });
+
+  it('reports brand knowledge status without requiring the private profile to be committed', () => {
+    const result = tools.executeTool('axios_get_brand_knowledge_status', {});
+
+    expect(result.success).toBe(true);
+    expect(result.defaultProfilePath).toBe('private/knowledge/axios-brand-profile.json');
+    expect(result.publicExamplePath).toBe('knowledge/axios-brand-profile.example.json');
+    expect(result.guidance.join(' ')).toContain('Do not commit');
+  });
+
+  it('plans a custom editor skill from repeated editor requests', () => {
+    const result = tools.executeTool('axios_plan_custom_editor_skill', {
+      request: 'Every time I ask for LinkedIn clips, give me a ranked social cut list.',
+      examples: [
+        'Find the best LinkedIn moments',
+        'Make a social cut list for this interview',
+        'What clips should become Shorts?'
+      ],
+      requestCount: 4,
+      desiredOutcome: 'ranked social clip plan'
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.draft.category).toBe('social');
+    expect(result.draft.primaryOutputs).toContain('ranked social clip plan');
+    expect(result.promotion.score).toBeGreaterThanOrEqual(70);
+    expect(result.organization.privateRequestLogPath).toContain('private/skill-requests/');
+  });
+
+  it('plans organized storage paths for generated assets', () => {
+    const result = tools.executeTool('axios_plan_asset_storage', {
+      projectSlug: 'The Axios Show',
+      taskType: 'title_graphics',
+      assetKind: 'graphics',
+      filename: 'The Axios Show Intro.png',
+      date: '2026-06-28'
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.projectRoot).toBe('workspace/projects/the-axios-show');
+    expect(result.suggestedPath).toBe('workspace/projects/the-axios-show/title_graphics/graphics/2026-06-28/the-axios-show-intro.png');
   });
 });

@@ -5,7 +5,7 @@ description: Install, verify, troubleshoot, and operate the Adobe Premiere Pro M
 
 # Adobe Premiere Pro MCP
 
-Use this skill when working with the Adobe Premiere Pro MCP server from `hetpatel-11/Adobe_Premiere_Pro_MCP`.
+Use this skill when working with the Adobe Premiere Pro MCP server from `calebkelson/Adobe_Premiere_Pro_MCP`.
 
 ## Core Rules
 
@@ -25,7 +25,7 @@ If the user asks you to install or set up the MCP:
 2. Clone or open the repo:
 
 ```bash
-git clone https://github.com/hetpatel-11/Adobe_Premiere_Pro_MCP.git
+git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git
 cd Adobe_Premiere_Pro_MCP
 ```
 

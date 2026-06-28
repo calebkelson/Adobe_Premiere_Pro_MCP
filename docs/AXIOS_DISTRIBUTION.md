@@ -26,6 +26,7 @@ This fork should keep those core pieces, then add Axios-specific editing workflo
 - Export sequences using Axios platform presets.
 
 See `docs/AXIOS_EDITOR_SKILLS.md` for the initial Axios editor assistant catalog.
+See `docs/KNOWLEDGE_AND_ASSETS.md` for brand knowledge, custom skill growth, and generated asset storage.
 
 ## Distribution Principles
 
@@ -34,6 +35,8 @@ See `docs/AXIOS_EDITOR_SKILLS.md` for the initial Axios editor assistant catalog
 - Keep Axios-specific changes in clearly named modules and docs.
 - Prefer one-command editor setup scripts over manual config.
 - Treat generated media as scratch output unless it is an intentional template asset.
+- Store generated frames, graphics, exports, and analysis under `workspace/projects/`.
+- Keep proprietary brand source material under `private/` until the repo is private or Axios-owned.
 
 ## Editor Setup Target
 

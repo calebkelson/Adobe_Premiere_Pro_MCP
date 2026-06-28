@@ -8,6 +8,10 @@ These skills start as structured review/planning tools. They can list the availa
 
 - `axios_list_editor_skills`: lists the Axios editor assistant catalog.
 - `axios_plan_editor_skill_review`: creates a structured review plan for one assistant role.
+- `axios_plan_custom_editor_skill`: drafts a new skill from repeated editor asks.
+- `axios_get_brand_knowledge_status`: checks whether private Axios brand knowledge is installed locally.
+- `axios_read_brand_profile`: reads the local private brand profile when available.
+- `axios_plan_asset_storage`: suggests organized paths for generated frames, graphics, exports, and analysis.
 
 ## Skill Catalog
 
@@ -41,3 +45,11 @@ The raw Axios brand guidelines PDF should not be committed while this repository
 3. Distill approved rules into a machine-readable brand profile used by `Graphics Assistant`, `Export Optimizer`, `Thumbnail & Title Assistant`, and `Brand Compliance Checker`.
 
 The `.gitignore` includes local private brand paths so proprietary PDFs can sit near the project during development without being accidentally staged.
+
+## Skill Growth
+
+When editors repeatedly ask for the same workflow, use `axios_plan_custom_editor_skill` before adding it to this catalog. Keep the first pass review-only, collect real examples, add tests, then promote it into `src/axios/editorSkills.ts` after the output shape is stable.
+
+## Generated Asset Storage
+
+Generated frames, title graphics, fact-check cards, social exports, and analysis JSON should go under `workspace/projects/<project-slug>/`. Use `axios_plan_asset_storage` to keep file paths predictable.

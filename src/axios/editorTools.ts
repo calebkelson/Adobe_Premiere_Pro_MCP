@@ -1,6 +1,15 @@
 import { z } from 'zod';
 import type { MCPTool } from '../tools/index.js';
 import {
+  AXIOS_ASSET_KINDS,
+  AXIOS_ASSET_TASK_TYPES,
+  buildAxiosAssetStoragePlan,
+  type AxiosAssetKind,
+  type AxiosAssetTaskType
+} from './assetStorage.js';
+import { getAxiosBrandKnowledgeStatus, readAxiosBrandProfile } from './brandKnowledge.js';
+import { planAxiosCustomEditorSkill, type AxiosCustomSkillPlanOptions } from './customSkills.js';
+import {
   AXIOS_EDITOR_SKILL_CATEGORIES,
   buildAxiosEditorSkillPlan,
   listAxiosEditorSkills,
@@ -32,6 +41,48 @@ export class AxiosEditorTools {
           includeBrandChecks: z.boolean().optional().describe('Whether the review should include Axios brand checks when applicable.'),
           notes: z.string().optional().describe('Optional editor context or constraints.')
         })
+      },
+      {
+        name: 'axios_get_brand_knowledge_status',
+        description: 'Checks whether the private Axios brand knowledge profile is installed locally and explains the safe repo/private storage policy.',
+        inputSchema: z.object({
+          profilePath: z.string().optional().describe('Optional repository-relative path to the private brand profile JSON.')
+        })
+      },
+      {
+        name: 'axios_read_brand_profile',
+        description: 'Reads the private Axios brand profile JSON from the local repository when it exists. The raw PDF is not required at runtime.',
+        inputSchema: z.object({
+          profilePath: z.string().optional().describe('Optional repository-relative path to the private brand profile JSON.'),
+          includePageText: z.boolean().optional().describe('Whether to include extracted page text. Defaults to false.'),
+          maxSections: z.number().optional().describe('Maximum sections to return. Defaults to 12 and caps at 50.'),
+          query: z.string().optional().describe('Optional query terms to filter brand profile sections.')
+        })
+      },
+      {
+        name: 'axios_plan_custom_editor_skill',
+        description: 'Creates an organized draft plan for a new Axios editor skill when editors repeatedly ask for the same workflow.',
+        inputSchema: z.object({
+          request: z.string().describe('The repeated editor request or workflow the new skill should handle.'),
+          name: z.string().optional().describe('Optional display name for the proposed skill.'),
+          examples: z.array(z.string()).optional().describe('Real editor prompts that should trigger this skill.'),
+          category: z.enum(AXIOS_EDITOR_SKILL_CATEGORIES).optional().describe('Optional Axios skill category override.'),
+          requestCount: z.number().optional().describe('How many times this workflow has come up.'),
+          desiredOutcome: z.string().optional().describe('The concrete output editors expect.'),
+          needsBrandProfile: z.boolean().optional().describe('Whether this skill needs the private Axios brand profile.')
+        })
+      },
+      {
+        name: 'axios_plan_asset_storage',
+        description: 'Returns the standard local folder and filename plan for generated frames, graphics, exports, analysis, and other video assets.',
+        inputSchema: z.object({
+          projectSlug: z.string().describe('Short project or show slug, such as the-axios-show or ai-leaders-interview.'),
+          assetKind: z.enum(AXIOS_ASSET_KINDS).optional().describe('Asset kind such as generated, frames, graphics, exports, or analysis.'),
+          taskType: z.enum(AXIOS_ASSET_TASK_TYPES).optional().describe('Workflow type such as fact_check, title_graphics, social_clip, or brand_review.'),
+          filename: z.string().optional().describe('Optional source or desired filename.'),
+          extension: z.string().optional().describe('Optional file extension override.'),
+          date: z.string().optional().describe('Optional YYYY-MM-DD date folder. Defaults to today.')
+        })
       }
     ];
   }
@@ -60,6 +111,26 @@ export class AxiosEditorTools {
         return this.listSkills(args.category, args.includeBrandDependent);
       case 'axios_plan_editor_skill_review':
         return buildAxiosEditorSkillPlan(args as AxiosEditorSkillPlanOptions);
+      case 'axios_get_brand_knowledge_status':
+        return getAxiosBrandKnowledgeStatus({ profilePath: args.profilePath });
+      case 'axios_read_brand_profile':
+        return readAxiosBrandProfile({
+          profilePath: args.profilePath,
+          includePageText: args.includePageText,
+          maxSections: args.maxSections,
+          query: args.query
+        });
+      case 'axios_plan_custom_editor_skill':
+        return planAxiosCustomEditorSkill(args as AxiosCustomSkillPlanOptions);
+      case 'axios_plan_asset_storage':
+        return buildAxiosAssetStoragePlan({
+          projectSlug: args.projectSlug,
+          ...(args.assetKind === undefined ? {} : { assetKind: args.assetKind as AxiosAssetKind }),
+          ...(args.taskType === undefined ? {} : { taskType: args.taskType as AxiosAssetTaskType }),
+          ...(args.filename === undefined ? {} : { filename: args.filename }),
+          ...(args.extension === undefined ? {} : { extension: args.extension }),
+          ...(args.date === undefined ? {} : { date: args.date })
+        });
       default:
         return {
           success: false,

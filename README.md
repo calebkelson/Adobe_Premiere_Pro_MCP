@@ -33,11 +33,11 @@ I'm building **[Monet](https://github.com/Monet-AI-Editor/Monet)**, an AI-first 
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=hetpatel-11%2FAdobe_Premiere_Pro_MCP&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=calebkelson%2FAdobe_Premiere_Pro_MCP&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=hetpatel-11/Adobe_Premiere_Pro_MCP&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=hetpatel-11/Adobe_Premiere_Pro_MCP&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=hetpatel-11/Adobe_Premiere_Pro_MCP&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=calebkelson/Adobe_Premiere_Pro_MCP&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=calebkelson/Adobe_Premiere_Pro_MCP&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=calebkelson/Adobe_Premiere_Pro_MCP&type=date&legend=top-left" />
  </picture>
 </a>
 
@@ -94,13 +94,13 @@ High-level workflow tools included:
 If you want Codex, Claude Code, or another agent to handle installation, verification, and day-to-day usage correctly, install the included Agent Skill:
 
 ```bash
-npx skills add hetpatel-11/Adobe_Premiere_Pro_MCP --skill premiere-pro-mcp
+npx skills add calebkelson/Adobe_Premiere_Pro_MCP --skill premiere-pro-mcp
 ```
 
 Or install directly from the skill path:
 
 ```bash
-npx skills add https://github.com/hetpatel-11/Adobe_Premiere_Pro_MCP/tree/main/skills/premiere-pro-mcp
+npx skills add https://github.com/calebkelson/Adobe_Premiere_Pro_MCP/tree/main/skills/premiere-pro-mcp
 ```
 
 The skill teaches agents how to install the MCP, start and verify the CEP bridge, use the Premiere tools safely, import real media before editing, prefer sequence-aware operations, and run diagnostics when something fails.
@@ -108,7 +108,7 @@ The skill teaches agents how to install the MCP, start and verify the CEP bridge
 ## Fastest Install (macOS)
 
 ```bash
-git clone https://github.com/hetpatel-11/Adobe_Premiere_Pro_MCP.git
+git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git
 cd Adobe_Premiere_Pro_MCP
 npm run setup:mac
 ```

@@ -5,7 +5,7 @@ This is the shortest path to a working install.
 ## Claude Desktop (macOS)
 
 ```bash
-git clone https://github.com/hetpatel-11/Adobe_Premiere_Pro_MCP.git
+git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git
 cd Adobe_Premiere_Pro_MCP
 npm run setup:mac
 ```

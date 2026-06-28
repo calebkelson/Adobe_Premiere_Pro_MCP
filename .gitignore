@@ -28,5 +28,10 @@ brand-private/
 brand-guidelines/
 Axios_Brand_Guidelines*.pdf
 
+# Local generated media and analysis workspace
+workspace/projects/
+workspace/tmp/
+workspace/cache/
+
 # Worktrees
 .worktrees/
