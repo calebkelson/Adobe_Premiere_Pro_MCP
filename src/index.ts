@@ -32,12 +32,14 @@ import { PremiereProTools } from './tools/index.js';
 import { PremiereProResources } from './resources/index.js';
 import { PremiereProPrompts } from './prompts/index.js';
 import { PremiereProBridge } from './bridge/index.js';
+import { AxiosEditorTools } from './axios/editorTools.js';
 import { Logger } from './utils/logger.js';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 
 class MCPPremiereProServer {
   private server: Server;
   private tools: PremiereProTools;
+  private axiosTools: AxiosEditorTools;
   private resources: PremiereProResources;
   private prompts: PremiereProPrompts;
   private bridge: PremiereProBridge;
@@ -63,8 +65,9 @@ class MCPPremiereProServer {
 
     this.bridge = new PremiereProBridge();
     this.tools = new PremiereProTools(this.bridge);
+    this.axiosTools = new AxiosEditorTools();
     this.resources = new PremiereProResources(this.bridge);
-    this.prompts = new PremiereProPrompts();
+    this.prompts = new PremiereProPrompts8);
 
     this.setupHandlers();
   }
@@ -72,7 +75,10 @@ class MCPPremiereProServer {
   private setupHandlers(): void {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const tools = this.tools.getAvailableTools().map((tool) => ({
+      const tools = [
+        ...this.tools.getAvailableTools(),
+        ...this.axiosTools.getAvailableTools()
+      ].map((tool) => ({
         name: tool.name,
         description: tool.description,
         inputSchema: zodToJsonSchema(tool.inputSchema as any, { $refStrategy: 'none' }) as any
@@ -85,7 +91,9 @@ class MCPPremiereProServer {
       const { name, arguments: args } = request.params;
       
       try {
-        const result = await this.tools.executeTool(name, args || {});
+        const result = this.axiosTools.hasTool(name)
+          ? await this.axiosTools.executeTool(name, args || {})
+          : await this.tools.executeTool(name, args || {});
         return {
           content: [
             {

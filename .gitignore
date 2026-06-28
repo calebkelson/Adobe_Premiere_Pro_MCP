@@ -22,5 +22,11 @@ title_*.mov
 title_*preview*.png
 title_*preview*.png.png
 
+# Private Axios source materials. Keep proprietary brand/source docs out of public forks.
+private/
+brand-private/
+brand-guidelines/
+Axios_Brand_Guidelines*.pdf
+
 # Worktrees
 .worktrees/

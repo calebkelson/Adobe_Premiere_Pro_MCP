@@ -25,6 +25,8 @@ This fork should keep those core pieces, then add Axios-specific editing workflo
 - Build repeatable title animations, including slam-in and lower-third variants.
 - Export sequences using Axios platform presets.
 
+See `docs/AXIOS_EDITOR_SKILLS.md` for the initial Axios editor assistant catalog.
+
 ## Distribution Principles
 
 - Preserve upstream attribution and license.
