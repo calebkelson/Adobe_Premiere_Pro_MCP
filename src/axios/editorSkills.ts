@@ -103,7 +103,7 @@ export const AXIOS_EDITOR_SKILLS: readonly AxiosEditorSkill[] = [
     name: 'B-Roll Director',
     category: 'visuals',
     description: 'Recommends where to add B-roll, graphics, screenshots, or archival footage based on what is being discussed.',
-    evidenceToReview: ['talking-head stretches', 'topic changes', 'proper nouns', 'abstract pexplanations', 'existing B-roll placement'],
+    evidenceToReview: ['talking-head stretches', 'topic changes', 'proper nouns', 'abstract explanations', 'existing B-roll placement'],
     primaryOutputs: ['B-roll needs list', 'visual search terms', 'suggested placement times', 'coverage gaps'],
     markerTypes: ['broll_needed', 'screenshot_needed', 'archive_needed', 'visual_gap'],
     recommendedPremiereTools: ['list_sequence_tracks', 'get_clip_at_position', 'add_marker'],
