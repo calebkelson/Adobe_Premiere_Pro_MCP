@@ -5,8 +5,8 @@ This is the shortest path to a working install.
 ## Claude Desktop (macOS)
 
 ```bash
-git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git
-cd Adobe_Premiere_Pro_MCP
+git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git axios-premeire-mcp
+cd axios-premeire-mcp
 npm run setup:mac
 ```
 
@@ -45,7 +45,7 @@ npm run build
 Add the MCP entry on one line:
 
 ```bash
-codex mcp add premiere_pro --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
+codex mcp add axios-premeire-mcp --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/axios-premeire-mcp/dist/index.js
 ```
 
 Then:

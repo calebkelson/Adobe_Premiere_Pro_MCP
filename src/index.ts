@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * MCP Adobe Premiere Pro Server
+ * axios-premeire-mcp
  * 
  * This server enables AI-powered video editing through natural language prompts
  * by providing Model Context Protocol tools for Adobe Premiere Pro.
@@ -49,7 +49,7 @@ class MCPPremiereProServer {
     this.logger = new Logger('MCPPremiereProServer');
     this.server = new Server(
       {
-        name: 'mcp-adobe-premiere-pro',
+        name: 'axios-premeire-mcp',
         version: '1.0.0',
         description: 'Model Context Protocol tools for Adobe Premiere Pro - AI-powered video editing'
       },
@@ -193,7 +193,7 @@ class MCPPremiereProServer {
       const transport = new StdioServerTransport();
       await this.server.connect(transport);
       
-      this.logger.info('MCP Adobe Premiere Pro Server started successfully');
+      this.logger.info('axios-premeire-mcp server started successfully');
     } catch (error) {
       this.logger.error('Failed to start server:', error);
       throw error;
@@ -203,7 +203,7 @@ class MCPPremiereProServer {
   async stop(): Promise<void> {
     try {
       await this.bridge.cleanup();
-      this.logger.info('MCP Adobe Premiere Pro Server stopped');
+      this.logger.info('axios-premeire-mcp server stopped');
     } catch (error) {
       this.logger.error('Error stopping server:', error);
       throw error;
@@ -216,19 +216,19 @@ const server = new MCPPremiereProServer();
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
-  console.error('\nShutting down MCP Adobe Premiere Pro Server...');
+  console.error('\nShutting down axios-premeire-mcp...');
   await server.stop();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
-  console.error('\nShutting down MCP Adobe Premiere Pro Server...');
+  console.error('\nShutting down axios-premeire-mcp...');
   await server.stop();
   process.exit(0);
 });
 
 // Start the server
 server.start().catch((error) => {
-  console.error('Failed to start MCP Adobe Premiere Pro Server:', error);
+  console.error('Failed to start axios-premeire-mcp:', error);
   process.exit(1);
 }); 

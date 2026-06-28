@@ -49,7 +49,7 @@ The first editor-facing path is now:
 5. Open `Window > Extensions > MCP Bridge (CEP)`.
 6. Confirm the temp directory is `/tmp/premiere-mcp-bridge`.
 7. Click `Save Configuration`, `Start Bridge`, then `Test Connection`.
-8. Restart Codex so it reloads the `premiere_pro` MCP server.
+8. Restart Codex so it reloads the `axios-premeire-mcp` MCP server.
 
 The first setup script:
 
@@ -84,11 +84,11 @@ The update script:
 The future polished path should become:
 
 1. Install Node if needed.
-2. Run one package command, such as `npx axios-premiere-mcp setup`.
+2. Run one package command, such as `npx axios-premeire-mcp setup`.
 3. Open Premiere Pro.
 4. Open `Window > Extensions > MCP Bridge (CEP)`.
 5. Click `Start Bridge`.
-6. Use Codex with the `premiere_pro` MCP server.
+6. Use Codex with the `axios-premeire-mcp` MCP server.
 
 ## Near-Term Backlog
 

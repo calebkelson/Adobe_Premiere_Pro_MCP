@@ -36,7 +36,7 @@ if (raw) {
 }
 
 if (data && typeof data === "object" && !Array.isArray(data) && data.mcpServers && typeof data.mcpServers === "object" && !Array.isArray(data.mcpServers)) {
-  delete data.mcpServers["premiere-pro"];
+  delete data.mcpServers["axios-premeire-mcp"];
 }
 
 fs.writeFileSync(configPath, `${JSON.stringify(data, null, 2)}\n`);

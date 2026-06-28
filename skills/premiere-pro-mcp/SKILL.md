@@ -1,11 +1,11 @@
 ---
-name: premiere-pro-mcp
+name: axios-premeire-mcp
 description: Install, verify, troubleshoot, and operate the Adobe Premiere Pro MCP server. Use when a user wants an agent to set up Premiere MCP, connect Claude Code/Codex/Claude Desktop, control Premiere, import media, build sequences, edit timelines, apply effects, or diagnose bridge issues.
 ---
 
-# Adobe Premiere Pro MCP
+# axios-premeire-mcp
 
-Use this skill when working with the Adobe Premiere Pro MCP server from `calebkelson/Adobe_Premiere_Pro_MCP`.
+Use this skill when working with `axios-premeire-mcp` from `calebkelson/Adobe_Premiere_Pro_MCP`.
 
 ## Core Rules
 
@@ -25,8 +25,8 @@ If the user asks you to install or set up the MCP:
 2. Clone or open the repo:
 
 ```bash
-git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git
-cd Adobe_Premiere_Pro_MCP
+git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git axios-premeire-mcp
+cd axios-premeire-mcp
 ```
 
 3. On macOS, run:
@@ -45,14 +45,14 @@ npm run build
 5. Register the MCP server in the user's client with:
 
 ```text
-command: node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
+command: node /absolute/path/to/axios-premeire-mcp/dist/index.js
 env: PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge
 ```
 
 For Codex, prefer:
 
 ```bash
-codex mcp add premiere_pro --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
+codex mcp add axios-premeire-mcp --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/axios-premeire-mcp/dist/index.js
 ```
 
 ## Premiere Bridge Startup
@@ -117,4 +117,3 @@ Common fixes:
 - `ENOENT` on temp directory: create `/tmp/premiere-mcp-bridge`, save config again, restart bridge.
 - Tool succeeds in Premiere but reports failure: run `list_sequences` or the relevant list tool to confirm state before retrying.
 - Empty or malformed temp directory config: set the field to the path only, not JSON or an env assignment.
-

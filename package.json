@@ -1,7 +1,7 @@
 {
-  "name": "mcp-adobe-premiere-pro",
+  "name": "axios-premeire-mcp",
   "version": "1.0.0",
-  "description": "Model Context Protocol tools for Adobe Premiere Pro - AI-powered video editing through natural language prompts",
+  "description": "Axios-focused Model Context Protocol tools for Adobe Premiere Pro editing workflows",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {

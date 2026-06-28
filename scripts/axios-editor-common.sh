@@ -2,20 +2,20 @@
 
 set -euo pipefail
 
-MCP_NAME="${AXIOS_PREMIERE_MCP_NAME:-premiere_pro}"
+MCP_NAME="${AXIOS_PREMIERE_MCP_NAME:-axios-premeire-mcp}"
 TEMP_DIR="${AXIOS_PREMIERE_TEMP_DIR:-/tmp/premiere-mcp-bridge}"
 CEP_BUNDLE_NAME="${AXIOS_PREMIERE_CEP_BUNDLE_NAME:-MCPBridgeCEP}"
 
 info() {
-  printf '[axios-premiere-mcp] %s\n' "$1"
+  printf '[axios-premeire-mcp] %s\n' "$1"
 }
 
 warn() {
-  printf '[axios-premiere-mcp] warning: %s\n' "$1" >&2
+  printf '[axios-premeire-mcp] warning: %s\n' "$1" >&2
 }
 
 die() {
-  printf '[axios-premiere-mcp] error: %s\n' "$1" >&2
+  printf '[axios-premeire-mcp] error: %s\n' "$1" >&2
   exit 1
 }
 

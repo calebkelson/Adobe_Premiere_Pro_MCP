@@ -1,4 +1,4 @@
-# Adobe Premiere Pro MCP Server
+# axios-premeire-mcp
 
 English | [Español](README.es.md)
 
@@ -94,7 +94,7 @@ High-level workflow tools included:
 If you want Codex, Claude Code, or another agent to handle installation, verification, and day-to-day usage correctly, install the included Agent Skill:
 
 ```bash
-npx skills add calebkelson/Adobe_Premiere_Pro_MCP --skill premiere-pro-mcp
+npx skills add calebkelson/Adobe_Premiere_Pro_MCP --skill axios-premeire-mcp
 ```
 
 Or install directly from the skill path:
@@ -108,8 +108,8 @@ The skill teaches agents how to install the MCP, start and verify the CEP bridge
 ## Fastest Install (macOS)
 
 ```bash
-git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git
-cd Adobe_Premiere_Pro_MCP
+git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git axios-premeire-mcp
+cd axios-premeire-mcp
 npm run setup:mac
 ```
 
@@ -120,7 +120,7 @@ That installer will:
 - enable Adobe CEP debug mode
 - install the `MCP Bridge (CEP)` extension
 - create `/tmp/premiere-mcp-bridge`
-- add the `premiere-pro` MCP entry to Claude Desktop
+- add the `axios-premeire-mcp` MCP entry to Claude Desktop
 
 Important:
 
@@ -172,7 +172,7 @@ npm run build
 Then add the MCP server on a single line:
 
 ```bash
-codex mcp add premiere_pro --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
+codex mcp add axios-premeire-mcp --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/axios-premeire-mcp/dist/index.js
 ```
 
 ### Claude Code
@@ -187,7 +187,7 @@ npm run build
 Then register the MCP server in Claude Code using the same built `dist/index.js` entrypoint and the same temp directory:
 
 ```text
-command: node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
+command: node /absolute/path/to/axios-premeire-mcp/dist/index.js
 env: PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge
 ```
 
@@ -198,7 +198,7 @@ If you use a local MCP config file instead of a helper command, point it at the 
 Use the same manual registration approach as Claude Code:
 
 ```text
-command: node /absolute/path/to/Adobe_Premiere_Pro_MCP/dist/index.js
+command: node /absolute/path/to/axios-premeire-mcp/dist/index.js
 env: PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge
 ```
 

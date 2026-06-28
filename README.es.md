@@ -1,4 +1,4 @@
-# Adobe Premiere Pro MCP Server
+# axios-premeire-mcp
 
 [English](README.md)
 
@@ -7,8 +7,8 @@ Controla Adobe Premiere Pro mediante MCP usando Codex, Claude Code, Claude Deskt
 ## Inicio rápido
 
 ```bash
-git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git
-cd Adobe_Premiere_Pro_MCP
+git clone https://github.com/calebkelson/Adobe_Premiere_Pro_MCP.git axios-premeire-mcp
+cd axios-premeire-mcp
 npm run setup:mac
 ```
 

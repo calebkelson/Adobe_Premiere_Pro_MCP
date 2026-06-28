@@ -81,7 +81,7 @@ if (!data.mcpServers || typeof data.mcpServers !== "object" || Array.isArray(dat
   data.mcpServers = {};
 }
 
-data.mcpServers["premiere-pro"] = {
+data.mcpServers["axios-premeire-mcp"] = {
   command: "node",
   args: [distPath],
   env: {

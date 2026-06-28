@@ -83,7 +83,7 @@ const tempPath = process.env.TEMP_PATH;
 try {
   const raw = fs.readFileSync(configPath, "utf8");
   const data = JSON.parse(raw);
-  const server = data && data.mcpServers && data.mcpServers["premiere-pro"];
+  const server = data && data.mcpServers && data.mcpServers["axios-premeire-mcp"];
 
   if (!server) {
     console.log("missing-server");
@@ -110,13 +110,13 @@ try {
 
   case "$CONFIG_CHECK" in
     ok)
-      pass "Claude Desktop config contains a valid premiere-pro entry"
+      pass "Claude Desktop config contains a valid axios-premeire-mcp entry"
       ;;
     missing-server)
-      fail "Claude Desktop config is present but missing the premiere-pro entry"
+      fail "Claude Desktop config is present but missing the axios-premeire-mcp entry"
       ;;
     bad-command:*)
-      fail "Claude Desktop config has a premiere-pro entry with the wrong command (${CONFIG_CHECK#bad-command:})"
+      fail "Claude Desktop config has an axios-premeire-mcp entry with the wrong command (${CONFIG_CHECK#bad-command:})"
       ;;
     bad-path:*)
       fail "Claude Desktop config points to the wrong dist path (${CONFIG_CHECK#bad-path:})"
