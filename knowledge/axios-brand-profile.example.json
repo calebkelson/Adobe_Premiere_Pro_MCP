@@ -1,0 +1,21 @@
+{
+  "profileVersion": "example",
+  "generatedAt": "2026-06-28T00:00:00+00:00",
+  "source": {
+    "fileName": "Axios_Brand_Guidelines.example.pdf",
+    "sha256": "example-only",
+    "pages": 0
+  },
+  "usage": {
+    "visibility": "private",
+    "commitPolicy": "Do not commit generated proprietary profiles while the repository is public."
+  },
+  "sections": [
+    {
+      "page": 1,
+      "heading": "Example Section",
+      "text": "Replace this with approved private brand guidance generated from the source PDF.",
+      "wordCount": 12
+    }
+  ]
+}
