@@ -55,12 +55,26 @@ Add the MCP entry on one line:
 codex mcp add axios-premeire-mcp --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/axios-premeire-mcp/dist/index.js
 ```
 
+Add the companion Axios n8n MCP too:
+
+```bash
+codex mcp add axios-premier-mcp --url https://n8n.automail-ai.com/mcp/axios-premier-mcp
+```
+
+If the helper command is not available, add this to Codex config:
+
+```toml
+[mcp_servers.axios-premier-mcp]
+url = "https://n8n.automail-ai.com/mcp/axios-premier-mcp"
+```
+
 Then:
 
 1. Restart the client.
 2. Open the Premiere CEP panel.
 3. Confirm the temp directory is `/tmp/premiere-mcp-bridge`.
 4. Click `Start Bridge`.
+5. Confirm both MCPs are loaded: `axios-premeire-mcp` and `axios-premier-mcp`.
 
 ## Sanity Checks
 

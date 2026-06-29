@@ -3,6 +3,8 @@
 set -euo pipefail
 
 MCP_NAME="${AXIOS_PREMIERE_MCP_NAME:-axios-premeire-mcp}"
+N8N_MCP_NAME="${AXIOS_PREMIERE_N8N_MCP_NAME:-axios-premier-mcp}"
+N8N_MCP_URL="${AXIOS_PREMIERE_N8N_MCP_URL:-https://n8n.automail-ai.com/mcp/axios-premier-mcp}"
 TEMP_DIR="${AXIOS_PREMIERE_TEMP_DIR:-/tmp/premiere-mcp-bridge}"
 CEP_BUNDLE_NAME="${AXIOS_PREMIERE_CEP_BUNDLE_NAME:-MCPBridgeCEP}"
 MEDIA_REQUIREMENTS_FILE="${AXIOS_PREMIERE_MEDIA_REQUIREMENTS_FILE:-requirements-media.txt}"
@@ -194,6 +196,13 @@ configure_codex_mcp() {
   info "Registering Codex MCP server '$MCP_NAME'..."
   codex mcp remove "$MCP_NAME" >/dev/null 2>&1 || true
   codex mcp add "$MCP_NAME" --env "PREMIERE_TEMP_DIR=$TEMP_DIR" -- "$node_bin" "$root/dist/index.js"
+
+  info "Registering Codex remote n8n MCP server '$N8N_MCP_NAME'..."
+  codex mcp remove "$N8N_MCP_NAME" >/dev/null 2>&1 || true
+  if ! codex mcp add "$N8N_MCP_NAME" --url "$N8N_MCP_URL"; then
+    warn "Codex CLI could not register the remote n8n MCP automatically."
+    warn "Editors can add it manually to Codex config as: [mcp_servers.$N8N_MCP_NAME] url = \"$N8N_MCP_URL\""
+  fi
 }
 
 print_next_steps() {
@@ -208,6 +217,7 @@ Next steps for the editor:
 4. Go to Window > Extensions > MCP Bridge (CEP).
 5. Confirm the temp directory is $TEMP_DIR.
 6. Click Save Configuration, Start Bridge, then Test Connection.
+7. Confirm Codex also loaded the remote n8n MCP server '$N8N_MCP_NAME'.
 
 EOF
 }

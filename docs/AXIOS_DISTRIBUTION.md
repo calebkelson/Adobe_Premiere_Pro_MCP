@@ -49,7 +49,7 @@ The first editor-facing path is now:
 5. Open `Window > Extensions > MCP Bridge (CEP)`.
 6. Confirm the temp directory is `/tmp/premiere-mcp-bridge`.
 7. Click `Save Configuration`, `Start Bridge`, then `Test Connection`.
-8. Restart Codex so it reloads the `axios-premeire-mcp` MCP server.
+8. Restart Codex so it reloads both the local `axios-premeire-mcp` MCP server and the remote `axios-premier-mcp` n8n MCP server.
 
 The first setup script:
 
@@ -60,6 +60,7 @@ The first setup script:
 - Enables Adobe CEP debug mode after warning the editor.
 - Creates the bridge temp directory.
 - Registers the Codex MCP server when the Codex CLI is available.
+- Registers the companion remote n8n MCP server at `https://n8n.automail-ai.com/mcp/axios-premier-mcp` when supported.
 
 ## Editor Update Target
 
@@ -70,6 +71,7 @@ The update path is:
 3. Restart Codex.
 4. Reload the Premiere CEP panel if it is already open.
 5. Click `Test Connection`.
+6. Confirm Codex can see both MCPs: `axios-premeire-mcp` and `axios-premier-mcp`.
 
 The update script:
 
@@ -79,6 +81,7 @@ The update script:
 - Rebuilds the MCP server.
 - Reinstalls the CEP panel.
 - Refreshes the Codex MCP registration.
+- Refreshes the companion remote n8n MCP registration.
 
 ## Longer-Term Setup Target
 
@@ -91,6 +94,7 @@ The future polished path should become:
 5. Open `Window > Extensions > MCP Bridge (CEP)`.
 6. Click `Start Bridge`.
 7. Use Codex with the `axios-premeire-mcp` MCP server.
+8. Use Codex with the companion `axios-premier-mcp` n8n MCP server for Axios workflow helpers.
 
 ## Near-Term Backlog
 

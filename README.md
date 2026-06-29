@@ -29,6 +29,7 @@ This repository is currently validated for:
 - FFmpeg/ffprobe, auto-editor, OpenTimelineIO, and Python media dependencies for transcript, subtitle, audio-analysis, proxy, and future n8n/Whisper handoff workflows
 - the included macOS installer path for Claude Desktop
 - manual MCP registration for Codex, Claude Code, and similar MCP clients
+- the companion remote n8n MCP at `https://n8n.automail-ai.com/mcp/axios-premier-mcp` for Axios workflow subflows such as transcript timing, marker planning, and XML/cut-list helpers
 
 Current local validation as of March 4, 2026:
 
@@ -153,6 +154,19 @@ Then add the MCP server on a single line:
 codex mcp add axios-premeire-mcp --env PREMIERE_TEMP_DIR=/tmp/premiere-mcp-bridge -- node /absolute/path/to/axios-premeire-mcp/dist/index.js
 ```
 
+Add the companion Axios n8n MCP as a second MCP server:
+
+```bash
+codex mcp add axios-premier-mcp --url https://n8n.automail-ai.com/mcp/axios-premier-mcp
+```
+
+If your Codex build uses config files instead of the helper command, add:
+
+```toml
+[mcp_servers.axios-premier-mcp]
+url = "https://n8n.automail-ai.com/mcp/axios-premier-mcp"
+```
+
 ### Claude Code
 
 Build the server the same way:
@@ -184,6 +198,7 @@ Important for all manual client setups:
 
 - keep the command on one line
 - use the real absolute path to `dist/index.js`
+- add the remote n8n MCP URL separately when the client supports HTTP MCP servers: `https://n8n.automail-ai.com/mcp/axios-premier-mcp`
 - restart the client after adding or updating the MCP entry
 - start the CEP bridge inside Premiere and confirm the temp directory is exactly `/tmp/premiere-mcp-bridge`
 
