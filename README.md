@@ -6,30 +6,6 @@ Control Adobe Premiere Pro through MCP using Codex, Claude Code, Claude Desktop,
 
 ---
 
-## Building Something Better
-
-<table>
-<tr>
-<td width="100" align="center">
-<a href="https://github.com/Monet-AI-Editor/Monet">
-  <img src="images/monet-logo.svg" width="80" height="80" alt="Monet logo" />
-</a>
-</td>
-<td>
-
-**Adobe Premiere Pro was not built for AI agents — and it shows.**
-
-I'm building **[Monet](https://github.com/Monet-AI-Editor/Monet)**, an AI-first video editor designed from day one for full coding-agent control for claude code and openai codex. No workarounds. No scripting hacks. Just a clean API built for the way agents actually work.
-
-➡️ **[Star Monet on GitHub](https://github.com/Monet-AI-Editor/Monet)** 
-
-</td>
-</tr>
-</table>
-
----
-
-![Current MCP Bridge (CEP) panel](images/demo.png)
 
 ## Star History
 
