@@ -43,6 +43,8 @@ require_macos
 ROOT="$(repo_root)"
 
 require_node_and_npm
+ensure_media_binaries
+ensure_python_media_tools "$ROOT"
 install_dependencies "$ROOT"
 build_server "$ROOT"
 enable_cep_debug_mode

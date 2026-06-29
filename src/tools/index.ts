@@ -2259,49 +2259,124 @@ export class PremiereProTools {
   }
 
   private async importFolder(folderPath: string, binName?: string, recursive = false): Promise<any> {
+    const folderArg = JSON.stringify(folderPath);
+    const binNameArg = binName ? JSON.stringify(binName) : 'null';
+    const recursiveArg = recursive ? 'true' : 'false';
     const script = `
       try {
-        var folder = new Folder("${folderPath}");
+        var folder = new Folder(${folderArg});
         var importedItems = [];
         var errors = [];
+        var filePaths = [];
+
+        if (!folder.exists) {
+          return JSON.stringify({
+            success: false,
+            error: "Folder not found: " + folder.fsName
+          });
+        }
+
+        function normalizePath(value) {
+          return String(value || "").replace(/\\\\/g, "/");
+        }
+
+        function collectProjectItemsByPath(item, map) {
+          if (!item) return;
+          try {
+            if (item.getMediaPath) {
+              var mediaPath = item.getMediaPath();
+              if (mediaPath) map[normalizePath(mediaPath)] = item;
+            }
+          } catch (_) {}
+
+          if (item.children) {
+            for (var childIndex = 0; childIndex < item.children.numItems; childIndex++) {
+              collectProjectItemsByPath(item.children[childIndex], map);
+            }
+          }
+        }
+
+        function findBinByName(root, name) {
+          if (!name) return null;
+          if (!root || !root.children) return null;
+          for (var i = 0; i < root.children.numItems; i++) {
+            var child = root.children[i];
+            if (child && child.name === name) return child;
+          }
+          return null;
+        }
+
+        function ensureTargetBin(name) {
+          if (!name) return app.project.rootItem;
+
+          var existing = findBinByName(app.project.rootItem, name);
+          if (existing) return existing;
+
+          try {
+            app.project.rootItem.createBin(name);
+            return findBinByName(app.project.rootItem, name) || app.project.rootItem;
+          } catch (e) {
+            errors.push({ file: null, error: "Could not create bin '" + name + "': " + e.toString() });
+            return app.project.rootItem;
+          }
+        }
         
-        function importFiles(dir, targetBin) {
+        function collectFiles(dir) {
           var files = dir.getFiles();
           for (var i = 0; i < files.length; i++) {
             var file = files[i];
             if (file instanceof File) {
-              try {
-                var item = targetBin.importFiles([file.fsName]);
-                if (item && item.length > 0) {
-                  importedItems.push({
-                    name: file.name,
-                    path: file.fsName,
-                    id: item[0].nodeId
-                  });
-                }
-              } catch (e) {
-                errors.push({
-                  file: file.name,
-                  error: e.toString()
-                });
-              }
-            } else if (file instanceof Folder && ${recursive}) {
-              importFiles(file, targetBin);
+              filePaths.push(file.fsName);
+            } else if (file instanceof Folder && ${recursiveArg}) {
+              collectFiles(file);
             }
           }
         }
         
-        var targetBin = app.project.rootItem;
-        ${binName ? `targetBin = app.project.rootItem.children["${binName}"] || app.project.rootItem;` : ''}
-        
-        importFiles(folder, targetBin);
+        var targetBin = ensureTargetBin(${binNameArg});
+        collectFiles(folder);
+
+        if (filePaths.length === 0) {
+          return JSON.stringify({
+            success: true,
+            importedItems: [],
+            errors: errors,
+            totalImported: 0,
+            totalErrors: errors.length,
+            totalRequested: 0,
+            importResult: true
+          });
+        }
+
+        var beforeItems = {};
+        var afterItems = {};
+        collectProjectItemsByPath(app.project.rootItem, beforeItems);
+
+        var importResult = app.project.importFiles(filePaths, true, targetBin, false);
+
+        collectProjectItemsByPath(app.project.rootItem, afterItems);
+
+        for (var pathIndex = 0; pathIndex < filePaths.length; pathIndex++) {
+          var importedPath = filePaths[pathIndex];
+          var normalizedPath = normalizePath(importedPath);
+          var projectItem = afterItems[normalizedPath] || null;
+          importedItems.push({
+            name: File(importedPath).name,
+            path: importedPath,
+            id: projectItem ? projectItem.nodeId : null,
+            alreadyExisted: !!beforeItems[normalizedPath]
+          });
+        }
         
         return JSON.stringify({
-          success: true,
+          success: !!importResult,
+          importResult: !!importResult,
           importedItems: importedItems,
           errors: errors,
           totalImported: importedItems.length,
-          totalErrors: errors.length
+          totalErrors: errors.length,
+          totalRequested: filePaths.length,
+          binName: targetBin ? targetBin.name : null
         });
       } catch (e) {
         return JSON.stringify({

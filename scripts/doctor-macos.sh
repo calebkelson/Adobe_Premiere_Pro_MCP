@@ -28,16 +28,111 @@ info() {
   echo "[info] $1"
 }
 
-if command -v node >/dev/null 2>&1; then
-  NODE_VERSION="$(node -v)"
-  NODE_MAJOR="$(node -p "process.versions.node.split('.')[0]")"
+find_executable() {
+  local name="$1"
+
+  if command -v "$name" >/dev/null 2>&1; then
+    command -v "$name"
+    return 0
+  fi
+
+  for candidate in "/opt/homebrew/bin/$name" "/usr/local/bin/$name"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  for candidate in "$HOME"/Library/Python/*/bin/"$name"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+if NODE_BIN="$(find_executable node 2>/dev/null)"; then
+  NODE_VERSION="$("$NODE_BIN" -v)"
+  NODE_MAJOR="$("$NODE_BIN" -p "process.versions.node.split('.')[0]")"
   if [[ "$NODE_MAJOR" -ge 18 ]]; then
-    pass "Node.js available ($NODE_VERSION)"
+    pass "Node.js available at $NODE_BIN ($NODE_VERSION)"
   else
     fail "Node.js 18+ required (found $NODE_VERSION)"
   fi
 else
   fail "Node.js not found in PATH"
+fi
+
+if NPM_BIN="$(find_executable npm 2>/dev/null)"; then
+  pass "npm available at $NPM_BIN"
+else
+  fail "npm not found in PATH"
+fi
+
+if FFMPEG_BIN="$(find_executable ffmpeg 2>/dev/null)"; then
+  FFMPEG_VERSION="$("$FFMPEG_BIN" -version | sed -n '1p')"
+  pass "ffmpeg available at $FFMPEG_BIN ($FFMPEG_VERSION)"
+else
+  fail "ffmpeg not found. Install it with: brew install ffmpeg"
+fi
+
+if FFPROBE_BIN="$(find_executable ffprobe 2>/dev/null)"; then
+  FFPROBE_VERSION="$("$FFPROBE_BIN" -version | sed -n '1p')"
+  pass "ffprobe available at $FFPROBE_BIN ($FFPROBE_VERSION)"
+else
+  fail "ffprobe not found. It should be installed with ffmpeg."
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  PYTHON_VERSION="$(python3 --version)"
+  pass "Python 3 available ($PYTHON_VERSION)"
+else
+  fail "Python 3 not found in PATH"
+fi
+
+if python3 -m pip --version >/dev/null 2>&1; then
+  pass "Python pip available ($(python3 -m pip --version))"
+else
+  fail "Python pip not found. Install pip for python3."
+fi
+
+if AUTO_EDITOR_BIN="$(find_executable auto-editor 2>/dev/null)"; then
+  if AUTO_EDITOR_VERSION="$("$AUTO_EDITOR_BIN" --version 2>&1)"; then
+    pass "auto-editor CLI available at $AUTO_EDITOR_BIN ($AUTO_EDITOR_VERSION)"
+  else
+    fail "auto-editor CLI exists at $AUTO_EDITOR_BIN but failed to run: $AUTO_EDITOR_VERSION"
+  fi
+else
+  fail "auto-editor CLI not found. Install with: python3 -m pip install --user -r requirements-media.txt"
+fi
+
+if OTIOCONVERT_BIN="$(find_executable otioconvert 2>/dev/null)"; then
+  pass "OpenTimelineIO CLI available at $OTIOCONVERT_BIN"
+else
+  fail "OpenTimelineIO CLI not found. Install with: python3 -m pip install --user -r requirements-media.txt"
+fi
+
+PYTHON_MEDIA_CHECK="$(
+  python3 - <<'PY' 2>&1 || true
+missing = []
+for module_name in ("auto_editor", "opentimelineio", "pdfplumber"):
+    try:
+        __import__(module_name)
+    except Exception as error:
+        missing.append(f"{module_name}: {error}")
+if missing:
+    print("; ".join(missing))
+else:
+    print("ok")
+PY
+)"
+
+if [[ "$PYTHON_MEDIA_CHECK" == "ok" ]]; then
+  pass "Python media dependencies import successfully"
+else
+  fail "Python media dependencies missing ($PYTHON_MEDIA_CHECK). Install with: python3 -m pip install --user -r requirements-media.txt"
 fi
 
 if [[ -f "$DIST_ENTRY" ]]; then
@@ -73,7 +168,7 @@ done
 
 if [[ -f "$CLAUDE_CONFIG_PATH" ]]; then
   CONFIG_CHECK="$(
-    CONFIG_PATH="$CLAUDE_CONFIG_PATH" DIST_PATH="$DIST_ENTRY" TEMP_PATH="$TEMP_DIR" node -e '
+    CONFIG_PATH="$CLAUDE_CONFIG_PATH" DIST_PATH="$DIST_ENTRY" TEMP_PATH="$TEMP_DIR" "$NODE_BIN" -e '
 const fs = require("fs");
 
 const configPath = process.env.CONFIG_PATH;

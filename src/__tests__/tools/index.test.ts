@@ -173,6 +173,29 @@ describe('PremiereProTools', () => {
       expect(result.warning).toContain('blocking modal dialog');
     });
 
+    it('uses project-level bulk import for folder imports', async () => {
+      mockBridge.executeScript.mockResolvedValue({
+        success: true,
+        importResult: true,
+        importedItems: [{ name: 'video.mp4', path: '/path/to/folder/video.mp4', id: 'item-123' }],
+        totalImported: 1,
+        totalRequested: 1,
+        totalErrors: 0
+      } as any);
+
+      const result = await tools.executeTool('import_folder', {
+        folderPath: '/path/to/folder',
+        binName: 'Imports',
+        recursive: true
+      });
+
+      const script = mockBridge.executeScript.mock.calls[0][0];
+      expect(script).toContain('app.project.importFiles(filePaths, true, targetBin, false)');
+      expect(script).not.toContain('targetBin.importFiles');
+      expect(result.success).toBe(true);
+      expect(result.totalImported).toBe(1);
+    });
+
     it('passes through successful timeline placement', async () => {
       mockBridge.addToTimeline = jest.fn().mockResolvedValue({
         success: true,

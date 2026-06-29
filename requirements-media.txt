@@ -1,0 +1,3 @@
+auto-editor
+opentimelineio
+pdfplumber

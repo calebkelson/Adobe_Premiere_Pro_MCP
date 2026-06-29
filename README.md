@@ -26,6 +26,7 @@ This repository is currently validated for:
 - macOS
 - Adobe Premiere Pro 2020+ (actively used and tested on Premiere Pro 26.0)
 - Node.js 18+
+- FFmpeg/ffprobe, auto-editor, OpenTimelineIO, and Python media dependencies for transcript, subtitle, audio-analysis, proxy, and future n8n/Whisper handoff workflows
 - the included macOS installer path for Claude Desktop
 - manual MCP registration for Codex, Claude Code, and similar MCP clients
 
@@ -91,6 +92,7 @@ npm run setup:mac
 
 That installer will:
 
+- verify or install FFmpeg/ffprobe, auto-editor, OpenTimelineIO, and Python media dependencies
 - install dependencies
 - build `dist/index.js`
 - enable Adobe CEP debug mode
@@ -196,6 +198,8 @@ npm run setup:doctor
 That validates:
 
 - Node.js version
+- FFmpeg and ffprobe availability
+- Python media dependency availability, including auto-editor and OpenTimelineIO
 - built server output
 - CEP extension install
 - `/tmp/premiere-mcp-bridge`

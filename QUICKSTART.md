@@ -2,6 +2,13 @@
 
 This is the shortest path to a working install.
 
+The macOS setup checks for FFmpeg/ffprobe, auto-editor, OpenTimelineIO, and Python media helpers because transcript, subtitle, audio-analysis, proxy, and future n8n/Whisper workflows depend on them. If the setup cannot install them automatically, run:
+
+```bash
+brew install ffmpeg
+python3 -m pip install --user -r requirements-media.txt
+```
+
 ## Claude Desktop (macOS)
 
 ```bash

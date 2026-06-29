@@ -53,6 +53,7 @@ The first editor-facing path is now:
 
 The first setup script:
 
+- Verifies or installs FFmpeg/ffprobe, auto-editor, OpenTimelineIO, and Python media dependencies for transcript, subtitle, audio-analysis, proxy, and future n8n/Whisper workflows.
 - Installs Node dependencies.
 - Builds the MCP server.
 - Installs the Premiere CEP panel.
@@ -84,15 +85,15 @@ The update script:
 The future polished path should become:
 
 1. Install Node if needed.
-2. Run one package command, such as `npx axios-premeire-mcp setup`.
-3. Open Premiere Pro.
-4. Open `Window > Extensions > MCP Bridge (CEP)`.
-5. Click `Start Bridge`.
-6. Use Codex with the `axios-premeire-mcp` MCP server.
+2. Install or verify FFmpeg/ffprobe, auto-editor, OpenTimelineIO, and Python media dependencies.
+3. Run one package command, such as `npx axios-premeire-mcp setup`.
+4. Open Premiere Pro.
+5. Open `Window > Extensions > MCP Bridge (CEP)`.
+6. Click `Start Bridge`.
+7. Use Codex with the `axios-premeire-mcp` MCP server.
 
 ## Near-Term Backlog
 
-- Fix the current `import_folder` bin import bug.
 - Add a supported `axios_add_show_title` tool.
 - Add a supported `axios_add_fact_check_cards` tool.
 - Add a supported `axios_import_youtube_subtitles` tool.

@@ -35,14 +35,34 @@ cd axios-premeire-mcp
 npm run setup:mac
 ```
 
-4. For non-macOS or manual client setup, run:
+4. Ensure FFmpeg/ffprobe, auto-editor, OpenTimelineIO, and Python media dependencies are available for transcript, subtitle, audio-analysis, proxy, and future n8n/Whisper handoff workflows:
+
+```bash
+ffmpeg -version
+ffprobe -version
+auto-editor --version
+python3 - <<'PY'
+import auto_editor
+import opentimelineio
+import pdfplumber
+PY
+```
+
+On macOS with Homebrew and pip, install them with:
+
+```bash
+brew install ffmpeg
+python3 -m pip install --user -r requirements-media.txt
+```
+
+5. For non-macOS or manual client setup, run:
 
 ```bash
 npm install
 npm run build
 ```
 
-5. Register the MCP server in the user's client with:
+6. Register the MCP server in the user's client with:
 
 ```text
 command: node /absolute/path/to/axios-premeire-mcp/dist/index.js

@@ -5,6 +5,7 @@ set -euo pipefail
 MCP_NAME="${AXIOS_PREMIERE_MCP_NAME:-axios-premeire-mcp}"
 TEMP_DIR="${AXIOS_PREMIERE_TEMP_DIR:-/tmp/premiere-mcp-bridge}"
 CEP_BUNDLE_NAME="${AXIOS_PREMIERE_CEP_BUNDLE_NAME:-MCPBridgeCEP}"
+MEDIA_REQUIREMENTS_FILE="${AXIOS_PREMIERE_MEDIA_REQUIREMENTS_FILE:-requirements-media.txt}"
 
 info() {
   printf '[axios-premeire-mcp] %s\n' "$1"
@@ -47,12 +48,95 @@ require_macos() {
 }
 
 require_node_and_npm() {
-  command -v node >/dev/null 2>&1 || die "Node.js 18+ is required. Install Node, then rerun this script."
-  command -v npm >/dev/null 2>&1 || die "npm is required. Install Node/npm, then rerun this script."
+  local node_bin
+  local npm_bin
+  node_bin="$(find_executable node 2>/dev/null)" || die "Node.js 18+ is required. Install Node, then rerun this script."
+  npm_bin="$(find_executable npm 2>/dev/null)" || die "npm is required. Install Node/npm, then rerun this script."
+
+  export PATH="$(dirname "$node_bin"):$(dirname "$npm_bin"):$PATH"
 
   local node_major
-  node_major="$(node -p "process.versions.node.split('.')[0]")"
-  [[ "$node_major" -ge 18 ]] || die "Node.js 18+ is required. Found: $(node -v)"
+  node_major="$("$node_bin" -p "process.versions.node.split('.')[0]")"
+  [[ "$node_major" -ge 18 ]] || die "Node.js 18+ is required. Found: $("$node_bin" -v)"
+}
+
+find_executable() {
+  local name="$1"
+
+  if command -v "$name" >/dev/null 2>&1; then
+    command -v "$name"
+    return 0
+  fi
+
+  for candidate in "/opt/homebrew/bin/$name" "/usr/local/bin/$name"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  for candidate in "$HOME"/Library/Python/*/bin/"$name"; do
+    if [[ -x "$candidate" ]]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+find_homebrew() {
+  find_executable brew
+}
+
+ensure_media_binaries() {
+  local ffmpeg_bin
+  local ffprobe_bin
+
+  if ffmpeg_bin="$(find_executable ffmpeg 2>/dev/null)"; then
+    info "ffmpeg available at $ffmpeg_bin"
+  else
+    local brew_bin
+    if ! brew_bin="$(find_homebrew 2>/dev/null)"; then
+      die "ffmpeg is required for transcript, subtitle, audio-analysis, and proxy workflows. Install Homebrew, then run: brew install ffmpeg"
+    fi
+
+    warn "ffmpeg is required for transcript, subtitle, audio-analysis, and proxy workflows, but it was not found."
+    confirm_or_exit "Install ffmpeg with Homebrew now?"
+    "$brew_bin" install ffmpeg
+
+    ffmpeg_bin="$(find_executable ffmpeg 2>/dev/null)" || die "Homebrew finished, but ffmpeg was still not found."
+    info "ffmpeg installed at $ffmpeg_bin"
+  fi
+
+  ffprobe_bin="$(find_executable ffprobe 2>/dev/null)" || die "ffprobe is required and should be installed with ffmpeg, but it was not found."
+  info "ffprobe available at $ffprobe_bin"
+}
+
+ensure_python_media_tools() {
+  local root="$1"
+  local requirements_path="$root/$MEDIA_REQUIREMENTS_FILE"
+
+  command -v python3 >/dev/null 2>&1 || die "Python 3 is required for auto-editor, OpenTimelineIO, and media helpers."
+  python3 -m pip --version >/dev/null 2>&1 || die "pip for Python 3 is required. Install pip, then rerun this script."
+
+  [[ -f "$requirements_path" ]] || die "Media requirements file missing at $requirements_path"
+
+  info "Installing Python media dependencies from $MEDIA_REQUIREMENTS_FILE..."
+  python3 -m pip install --user -r "$requirements_path"
+
+  local auto_editor_bin
+  if auto_editor_bin="$(find_executable auto-editor 2>/dev/null)"; then
+    "$auto_editor_bin" --version >/dev/null
+  else
+    warn "auto-editor was installed but is not on PATH. Add your Python user bin directory to PATH if direct CLI calls fail."
+  fi
+
+  python3 - <<'PY' || die "One or more Python media dependencies could not be imported."
+import auto_editor  # noqa: F401
+import opentimelineio  # noqa: F401
+import pdfplumber  # noqa: F401
+PY
 }
 
 install_dependencies() {
@@ -99,7 +183,7 @@ prepare_bridge_temp_dir() {
 configure_codex_mcp() {
   local root="$1"
   local node_bin
-  node_bin="$(command -v node)"
+  node_bin="$(find_executable node 2>/dev/null)" || die "Node.js is required to register the Codex MCP server."
 
   if ! command -v codex >/dev/null 2>&1; then
     warn "Codex CLI was not found on PATH. Skipping Codex MCP registration."
