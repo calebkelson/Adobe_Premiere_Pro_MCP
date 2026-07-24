@@ -255,7 +255,7 @@ export class PremiereProBridge implements PremiereProTransport {
     return EXTENDSCRIPT_HELPERS + '(function(){\n' + script + '\n})();';
   }
 
-  async executeScript(script: string): Promise<any> {
+  async executeScript(script: string, timeoutMs?: number): Promise<any> {
     if (!this.isInitialized) {
       throw new Error('Bridge not initialized. Call initialize() first.');
     }
@@ -267,15 +267,16 @@ export class PremiereProBridge implements PremiereProTransport {
     try {
       const fullScript = this.buildExecutableScript(script);
 
-      // Write command to file
+      // Write command to file. timeoutMs lets the CEP/UXP panel extend long batch runs.
       await fs.writeFile(commandFile, JSON.stringify({
         id: commandId,
         script: fullScript,
+        timeoutMs,
         timestamp: new Date().toISOString()
       }));
 
       // Wait for response (in a real implementation, this would be handled by the UXP plugin)
-      const response = await this.waitForResponse(responseFile);
+      const response = await this.waitForResponse(responseFile, timeoutMs);
       
       // Clean up files
       await fs.unlink(commandFile).catch(() => {});
@@ -589,7 +590,7 @@ export class PremiereProBridge implements PremiereProTransport {
     return await this.executeScript(script);
   }
 
-  async addToTimeline(sequenceId: string, projectItemId: string, trackIndex: number, time: number, linkAudio: boolean = true): Promise<PremiereProClip> {
+  async addToTimeline(sequenceId: string, projectItemId: string, trackIndex: number, time: number, linkAudio: boolean = true, sourceInPoint?: number, sourceOutPoint?: number): Promise<PremiereProClip> {
     const script = `
       try {
         var sequence = __findSequence("${sequenceId}");
@@ -620,6 +621,34 @@ export class PremiereProBridge implements PremiereProTransport {
           track = sequence.videoTracks[${trackIndex}];
           if (!track) {
             return JSON.stringify({ success: false, error: "Video track not found at index ${trackIndex}", videoTrackCount: sequence.videoTracks.numTracks });
+          }
+        }
+
+        var srcIn = ${sourceInPoint === undefined ? 'null' : sourceInPoint};
+        var srcOut = ${sourceOutPoint === undefined ? 'null' : sourceOutPoint};
+        var appliedSourceInOut = false;
+        var sourceInOutError = "";
+        if (srcIn !== null && srcOut !== null) {
+          try {
+            projectItem.setInPoint(srcIn, 4);
+            projectItem.setOutPoint(srcOut, 4);
+            appliedSourceInOut = true;
+          } catch (eio) {
+            try {
+              projectItem.setInPoint(srcIn, 1);
+              projectItem.setOutPoint(srcOut, 1);
+              projectItem.setInPoint(srcIn, 2);
+              projectItem.setOutPoint(srcOut, 2);
+              appliedSourceInOut = true;
+            } catch (eio2) {
+              try {
+                projectItem.setInPoint(srcIn);
+                projectItem.setOutPoint(srcOut);
+                appliedSourceInOut = true;
+              } catch (eio3) {
+                sourceInOutError = String(eio3);
+              }
+            }
           }
         }
 
@@ -682,7 +711,9 @@ export class PremiereProBridge implements PremiereProTransport {
           duration: placedClip.duration.seconds,
           mediaPath: placedClip.projectItem && placedClip.projectItem.getMediaPath ? placedClip.projectItem.getMediaPath() : "",
           linkAudio: ${linkAudio},
-          unlinkedAudioRemoved: unlinkedAudioRemoved
+          unlinkedAudioRemoved: unlinkedAudioRemoved,
+          appliedSourceInOut: appliedSourceInOut,
+          sourceInOutError: sourceInOutError
         });
       } catch (e) {
         return JSON.stringify({
@@ -693,6 +724,118 @@ export class PremiereProBridge implements PremiereProTransport {
     `;
 
     return await this.executeScript(script);
+  }
+
+  async addToTimelineBatch(sequenceId: string, clips: Array<{ projectItemId: string; trackIndex: number; time: number; linkAudio?: boolean; sourceInPoint?: number; sourceOutPoint?: number }>): Promise<any> {
+    const specs = clips.map(c => ({
+      projectItemId: c.projectItemId,
+      trackIndex: c.trackIndex,
+      time: c.time,
+      linkAudio: c.linkAudio === undefined ? true : c.linkAudio,
+      sourceInPoint: c.sourceInPoint === undefined ? null : c.sourceInPoint,
+      sourceOutPoint: c.sourceOutPoint === undefined ? null : c.sourceOutPoint,
+    }));
+    const script = `
+      try {
+        var sequence = __findSequence(${JSON.stringify(sequenceId)});
+        if (!sequence) {
+          return JSON.stringify({ success: false, error: "Sequence not found" });
+        }
+        var specs = ${JSON.stringify(specs)};
+        var results = [];
+        for (var c = 0; c < specs.length; c++) {
+          var spec = specs[c];
+          var r = { index: c, time: spec.time, success: false };
+          try {
+            var projectItem = __findProjectItem(spec.projectItemId);
+            if (!projectItem) { r.error = "Project item not found"; results.push(r); continue; }
+
+            var mediaPath = projectItem.getMediaPath ? projectItem.getMediaPath() : "";
+            var isAudioOnly = /\\.(mp3|wav|aif|aiff|m4a|aac|flac|ogg|wma)$/i.test(mediaPath);
+            var track = isAudioOnly ? sequence.audioTracks[spec.trackIndex] : sequence.videoTracks[spec.trackIndex];
+            if (!track) { r.error = "Track not found at index " + spec.trackIndex; results.push(r); continue; }
+
+            if (spec.sourceInPoint !== null && spec.sourceOutPoint !== null) {
+              try {
+                projectItem.setInPoint(spec.sourceInPoint, 4);
+                projectItem.setOutPoint(spec.sourceOutPoint, 4);
+              } catch (eio) {
+                try {
+                  projectItem.setInPoint(spec.sourceInPoint, 1);
+                  projectItem.setOutPoint(spec.sourceOutPoint, 1);
+                  projectItem.setInPoint(spec.sourceInPoint, 2);
+                  projectItem.setOutPoint(spec.sourceOutPoint, 2);
+                } catch (eio2) {
+                  try {
+                    projectItem.setInPoint(spec.sourceInPoint);
+                    projectItem.setOutPoint(spec.sourceOutPoint);
+                  } catch (eio3) {}
+                }
+              }
+            }
+
+            track.overwriteClip(projectItem, spec.time);
+
+            var placedClip = null;
+            for (var i = 0; i < track.clips.numItems; i++) {
+              var candidate = track.clips[i];
+              if (candidate && candidate.projectItem && candidate.projectItem.nodeId === projectItem.nodeId && Math.abs(candidate.start.seconds - spec.time) < 0.1) {
+                placedClip = candidate;
+                break;
+              }
+            }
+            if (!placedClip && track.clips.numItems > 0) {
+              placedClip = track.clips[track.clips.numItems - 1];
+            }
+            if (!placedClip) { r.error = "Clip placement did not produce a track item"; results.push(r); continue; }
+
+            r.success = true;
+            r.id = placedClip.nodeId;
+            r.name = placedClip.name;
+            r.inPoint = placedClip.start.seconds;
+            r.outPoint = placedClip.end.seconds;
+            r.linkAudio = spec.linkAudio;
+            r.unlinkedAudioRemoved = 0;
+            if (!isAudioOnly && spec.linkAudio === false) {
+              var videoStart = placedClip.start.seconds;
+              var tolerance = 0.1;
+              for (var at = 0; at < sequence.audioTracks.numTracks; at++) {
+                var audioTrack = sequence.audioTracks[at];
+                for (var ai = audioTrack.clips.numItems - 1; ai >= 0; ai--) {
+                  var audioClip = audioTrack.clips[ai];
+                  if (audioClip && audioClip.projectItem &&
+                      audioClip.projectItem.nodeId === projectItem.nodeId &&
+                      Math.abs(audioClip.start.seconds - videoStart) < tolerance) {
+                    try {
+                      audioClip.remove(false, false);
+                      r.unlinkedAudioRemoved++;
+                    } catch (rmErr) {}
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            r.error = e.toString();
+          }
+          results.push(r);
+        }
+        var placed = 0;
+        for (var k = 0; k < results.length; k++) { if (results[k].success) placed++; }
+        var failed = specs.length - placed;
+        var allPlaced = (specs.length > 0 && placed === specs.length);
+        return JSON.stringify({
+          success: allPlaced,
+          status: (placed === 0 ? "failure" : (allPlaced ? "success" : "partial")),
+          placed: placed,
+          failed: failed,
+          total: specs.length,
+          results: results
+        });
+      } catch (e) {
+        return JSON.stringify({ success: false, error: e.toString() });
+      }
+    `;
+    return await this.executeScript(script, 300000);
   }
 
   async renderSequence(sequenceId: string, outputPath: string, presetPath: string): Promise<any> {

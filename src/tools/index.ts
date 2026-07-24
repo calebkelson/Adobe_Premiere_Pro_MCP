@@ -5,6 +5,7 @@
  * various video editing operations in Adobe Premiere Pro.
  */
 
+import { spawn } from 'child_process';
 import { z } from 'zod';
 import type { PremiereProTransport } from '../bridge/types.js';
 import { Logger } from '../utils/logger.js';
@@ -306,7 +307,24 @@ export class PremiereProTools {
           trackIndex: z.number().describe('The index of the video or audio track (0-based)'),
           time: z.number().describe('The time in seconds where the clip should be placed on the timeline'),
           insertMode: z.enum(['overwrite', 'insert']).optional().describe('Whether to overwrite existing content or insert and shift'),
-          linkAudio: z.boolean().optional().describe('When false, removes the auto-linked audio counterpart that Premiere places on audio tracks for video-track clips. Useful for video overlays whose source media (e.g. Remotion .mov outputs) carry silent PCM that would overwrite existing audio. Default true (preserves Premiere\'s native linking behavior).')
+          linkAudio: z.boolean().optional().describe('When false, removes the auto-linked audio counterpart that Premiere places on audio tracks for video-track clips. Useful for video overlays whose source media (e.g. Remotion .mov outputs) carry silent PCM that would overwrite existing audio. Default true (preserves Premiere\'s native linking behavior).'),
+          sourceInPoint: z.number().optional().describe('Source IN point in seconds. Requires sourceOutPoint. When omitted, the whole source or its current marks are placed.'),
+          sourceOutPoint: z.number().optional().describe('Source OUT point in seconds. Requires sourceInPoint.')
+        })
+      },
+      {
+        name: 'add_to_timeline_batch',
+        description: 'Places many clips onto one sequence in a single round-trip. Each clip supports linkAudio and sourceInPoint/sourceOutPoint. Returns per-clip results plus aggregate placed/failed counts.',
+        inputSchema: z.object({
+          sequenceId: z.string().describe('The ID of the sequence (timeline) to add clips to'),
+          clips: z.array(z.object({
+            projectItemId: z.string().describe('The ID of the project item to add'),
+            trackIndex: z.number().describe('The index of the video or audio track (0-based)'),
+            time: z.number().describe('Timeline position in seconds where the clip is placed'),
+            linkAudio: z.boolean().optional().describe('When false, removes the auto-linked audio counterpart Premiere places on audio tracks for video-track clips. Default true.'),
+            sourceInPoint: z.number().optional().describe('Source IN point in seconds. Requires sourceOutPoint.'),
+            sourceOutPoint: z.number().optional().describe('Source OUT point in seconds. Requires sourceInPoint.')
+          })).describe('Ordered list of clips to place. All use overwrite mode.')
         })
       },
       {
@@ -407,6 +425,18 @@ export class PremiereProTools {
         inputSchema: z.object({
           clipId: z.string().describe('The ID of the audio clip to adjust'),
           level: z.number().describe('The new audio level in decibels (dB). Can be positive or negative.')
+        })
+      },
+      {
+        name: 'detect_silence',
+        description: 'Analyzes a media file audio track for silent stretches using local ffmpeg silencedetect. Detection only; does not cut or modify the timeline.',
+        inputSchema: z.object({
+          mediaPath: z.string().optional().describe('Direct filesystem path to the media file to analyze'),
+          projectItemId: z.string().optional().describe('Project item ID to resolve to a media path instead of passing mediaPath directly'),
+          noiseThresholdDb: z.number().optional().describe('Silence threshold in dBFS, e.g. -30. Default -30.'),
+          minDurationSeconds: z.number().optional().describe('Minimum duration in seconds for a quiet stretch to count as silence. Default 1.5.')
+        }).refine((data) => Boolean(data.mediaPath) || Boolean(data.projectItemId), {
+          message: 'Provide either mediaPath or projectItemId'
         })
       },
       {
@@ -714,6 +744,24 @@ export class PremiereProTools {
               y: z.number().optional()
             }).optional().describe('Position coordinates')
           }).describe('Properties to set')
+        })
+      },
+      {
+        name: 'set_clip_properties_batch',
+        description: 'Applies Motion properties to many clips in a single round-trip. Returns per-clip results and reports missing properties instead of silently ignoring them.',
+        inputSchema: z.object({
+          items: z.array(z.object({
+            clipId: z.string().describe('The ID of the clip'),
+            properties: z.object({
+              opacity: z.number().optional().describe('Opacity 0-100'),
+              scale: z.number().optional().describe('Scale percentage'),
+              rotation: z.number().optional().describe('Rotation in degrees'),
+              position: z.object({
+                x: z.number().optional(),
+                y: z.number().optional()
+              }).optional().describe('Position in pixels matching the Effect Controls panel')
+            }).describe('Properties to set for this clip')
+          })).describe('List of clip and property pairs')
         })
       },
 
@@ -1215,7 +1263,9 @@ export class PremiereProTools {
 
         // Timeline Operations
         case 'add_to_timeline':
-          return await this.addToTimeline(args.sequenceId, args.projectItemId, args.trackIndex, args.time, args.insertMode, args.linkAudio);
+          return await this.addToTimeline(args.sequenceId, args.projectItemId, args.trackIndex, args.time, args.insertMode, args.linkAudio, args.sourceInPoint, args.sourceOutPoint);
+        case 'add_to_timeline_batch':
+          return await this.addToTimelineBatch(args.sequenceId, args.clips);
         case 'remove_from_timeline':
           return await this.removeFromTimeline(args.clipId, args.sequenceId, args.deleteMode);
         case 'move_clip':
@@ -1245,6 +1295,10 @@ export class PremiereProTools {
           return await this.addTransition(args.clipId1, args.clipId2, args.transitionName, args.duration);
         case 'add_transition_to_clip':
           return await this.addTransitionToClip(args.clipId, args.transitionName, args.position, args.duration);
+
+        // Audio Analysis
+        case 'detect_silence':
+          return await this.detectSilence(args.mediaPath, args.projectItemId, args.noiseThresholdDb, args.minDurationSeconds);
 
         // Audio Operations
         case 'adjust_audio_levels':
@@ -1331,6 +1385,8 @@ export class PremiereProTools {
           return await this.getClipProperties(args.clipId, args.sequenceId);
         case 'set_clip_properties':
           return await this.setClipProperties(args.clipId, args.properties);
+        case 'set_clip_properties_batch':
+          return await this.setClipPropertiesBatch(args.items);
 
         // Render Queue
         case 'add_to_render_queue':
@@ -2644,9 +2700,23 @@ export class PremiereProTools {
   }
 
   // Timeline Operations Implementation
-  private async addToTimeline(sequenceId: string, projectItemId: string, trackIndex: number, time: number, insertMode = 'overwrite', linkAudio: boolean = true): Promise<any> {
+  private async addToTimelineBatch(sequenceId: string, clips: Array<{ projectItemId: string; trackIndex: number; time: number; linkAudio?: boolean; sourceInPoint?: number; sourceOutPoint?: number }>): Promise<any> {
     try {
-      const result: any = await this.bridge.addToTimeline(sequenceId, projectItemId, trackIndex, time, linkAudio);
+      const result: any = await this.bridge.addToTimelineBatch(sequenceId, clips);
+      return { sequenceId, requested: clips.length, ...result };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        sequenceId,
+        requested: clips.length
+      };
+    }
+  }
+
+  private async addToTimeline(sequenceId: string, projectItemId: string, trackIndex: number, time: number, insertMode = 'overwrite', linkAudio: boolean = true, sourceInPoint?: number, sourceOutPoint?: number): Promise<any> {
+    try {
+      const result: any = await this.bridge.addToTimeline(sequenceId, projectItemId, trackIndex, time, linkAudio, sourceInPoint, sourceOutPoint);
       if (!result.success) {
         return {
           ...result,
@@ -2655,7 +2725,9 @@ export class PremiereProTools {
           trackIndex: trackIndex,
           time: time,
           insertMode: insertMode,
-          linkAudio: linkAudio
+          linkAudio: linkAudio,
+          sourceInPoint: sourceInPoint,
+          sourceOutPoint: sourceOutPoint
         };
       }
       return {
@@ -2667,6 +2739,8 @@ export class PremiereProTools {
         time: time,
         insertMode: insertMode,
         linkAudio: linkAudio,
+        sourceInPoint: sourceInPoint,
+        sourceOutPoint: sourceOutPoint,
         ...result
       };
     } catch (error) {
@@ -3304,6 +3378,139 @@ export class PremiereProTools {
     `;
 
     return await this.bridge.executeScript(script);
+  }
+
+  // Audio Analysis Implementation
+  private async resolveProjectItemMediaPath(projectItemId: string): Promise<{ path?: string; error?: string }> {
+    const script = `
+      try {
+        var item = __findProjectItem(${JSON.stringify(projectItemId)});
+        if (!item) {
+          return JSON.stringify({ success: false, error: "Project item not found by id: " + ${JSON.stringify(projectItemId)} });
+        }
+        var mediaPath = null;
+        try {
+          mediaPath = item.getMediaPath();
+        } catch (eMedia) {
+          return JSON.stringify({ success: false, error: "Could not read media path: " + eMedia.toString() });
+        }
+        if (!mediaPath) {
+          return JSON.stringify({ success: false, error: "Project item has no media path (is it a sequence or bin?)" });
+        }
+        return JSON.stringify({ success: true, mediaPath: mediaPath });
+      } catch (e) {
+        return JSON.stringify({ success: false, error: e.toString() });
+      }
+    `;
+    const result = await this.bridge.executeScript(script);
+    if (result?.success === false) {
+      return { error: result.error || 'Failed to resolve project item media path' };
+    }
+    return { path: result?.mediaPath };
+  }
+
+  private checkFfmpegAvailable(): Promise<boolean> {
+    return new Promise((resolve) => {
+      const proc = spawn('ffmpeg', ['-version']);
+      proc.on('error', () => resolve(false));
+      proc.on('close', (code) => resolve(code === 0));
+    });
+  }
+
+  private parseSilenceIntervals(stderr: string): Array<{ start: number; end: number; duration: number }> {
+    const starts: number[] = [];
+    const ends: number[] = [];
+    const startRe = /silence_start:\s*(-?[\d.]+)/g;
+    const endRe = /silence_end:\s*(-?[\d.]+)/g;
+    let match: RegExpExecArray | null;
+
+    while ((match = startRe.exec(stderr)) !== null) {
+      starts.push(parseFloat(match[1]!));
+    }
+    while ((match = endRe.exec(stderr)) !== null) {
+      ends.push(parseFloat(match[1]!));
+    }
+
+    const intervals: Array<{ start: number; end: number; duration: number }> = [];
+    const count = Math.min(starts.length, ends.length);
+    for (let i = 0; i < count; i++) {
+      const start = starts[i]!;
+      const end = ends[i]!;
+      intervals.push({
+        start,
+        end,
+        duration: Math.round((end - start) * 1000) / 1000,
+      });
+    }
+    return intervals;
+  }
+
+  private async detectSilence(
+    mediaPath?: string,
+    projectItemId?: string,
+    noiseThresholdDb = -30,
+    minDurationSeconds = 1.5
+  ): Promise<any> {
+    let resolvedPath = mediaPath;
+
+    if (!resolvedPath && projectItemId) {
+      const resolved = await this.resolveProjectItemMediaPath(projectItemId);
+      if (resolved.error) {
+        return { success: false, error: resolved.error };
+      }
+      resolvedPath = resolved.path;
+    }
+
+    if (!resolvedPath) {
+      return { success: false, error: 'Provide either mediaPath or projectItemId' };
+    }
+
+    const ffmpegAvailable = await this.checkFfmpegAvailable();
+    if (!ffmpegAvailable) {
+      return {
+        success: false,
+        error: 'ffmpeg was not found on PATH. detect_silence analyzes audio via ffmpeg silencedetect, not Premiere scripting. Install ffmpeg, for example `brew install ffmpeg` on macOS, and try again.'
+      };
+    }
+
+    return new Promise((resolve) => {
+      const ffmpegArgs = [
+        '-i', resolvedPath as string,
+        '-af', `silencedetect=noise=${noiseThresholdDb}dB:d=${minDurationSeconds}`,
+        '-f', 'null', '-'
+      ];
+      const proc = spawn('ffmpeg', ffmpegArgs);
+      let stderr = '';
+
+      proc.stderr.on('data', (chunk) => {
+        stderr += chunk.toString();
+      });
+
+      proc.on('error', (err) => {
+        resolve({ success: false, error: `Failed to run ffmpeg: ${err.message}` });
+      });
+
+      proc.on('close', (code) => {
+        if (code !== 0 && stderr.indexOf('silence_start') === -1) {
+          resolve({
+            success: false,
+            error: `ffmpeg exited with code ${code} and produced no silence data. This usually means the file could not be read.`,
+            mediaPath: resolvedPath,
+            ffmpegStderr: stderr.slice(-2000)
+          });
+          return;
+        }
+
+        resolve({
+          success: true,
+          mediaPath: resolvedPath,
+          noiseThresholdDb,
+          minDurationSeconds,
+          silenceIntervals: this.parseSilenceIntervals(stderr),
+          note: 'Detection only. Nothing was cut.'
+        });
+      });
+    });
   }
 
   // Audio Operations Implementation
@@ -4786,6 +4993,93 @@ export class PremiereProTools {
       }
     `;
     return await this.bridge.executeScript(script);
+  }
+
+  private async setClipPropertiesBatch(items: Array<{ clipId: string; properties: any }>): Promise<any> {
+    const specs = items.map((it) => ({
+      clipId: it.clipId,
+      opacity: it.properties?.opacity === undefined ? null : it.properties.opacity,
+      scale: it.properties?.scale === undefined ? null : it.properties.scale,
+      rotation: it.properties?.rotation === undefined ? null : it.properties.rotation,
+      posX: it.properties?.position?.x === undefined ? null : it.properties.position.x,
+      posY: it.properties?.position?.y === undefined ? null : it.properties.position.y,
+    }));
+    const script = `
+      try {
+        var specs = ${JSON.stringify(specs)};
+        var results = [];
+        for (var n = 0; n < specs.length; n++) {
+          var it = specs[n];
+          var r = { index: n, clipId: it.clipId, success: false };
+          try {
+            var info = __findClip(it.clipId);
+            if (!info) { r.error = "Clip not found"; results.push(r); continue; }
+            var clip = info.clip;
+            var __seqW = 1920, __seqH = 1080;
+            try {
+              if (info.sequence) {
+                if (info.sequence.frameSizeHorizontal) {
+                  __seqW = info.sequence.frameSizeHorizontal;
+                  __seqH = info.sequence.frameSizeVertical;
+                } else {
+                  var __ss = info.sequence.getSettings();
+                  if (__ss) {
+                    __seqW = __ss.videoFrameWidth;
+                    __seqH = __ss.videoFrameHeight;
+                  }
+                }
+              }
+            } catch (e0) {}
+
+            var want = {
+              opacity: it.opacity !== null,
+              scale: it.scale !== null,
+              rotation: it.rotation !== null,
+              position: (it.posX !== null || it.posY !== null)
+            };
+            var done = { opacity: false, scale: false, rotation: false, position: false };
+
+            for (var i = 0; i < clip.components.numItems; i++) {
+              var comp = clip.components[i];
+              for (var j = 0; j < comp.properties.numItems; j++) {
+                var p = comp.properties[j];
+                try {
+                  if (want.opacity && p.displayName === "Opacity") { p.setValue(it.opacity, true); done.opacity = true; }
+                  if (want.scale && p.displayName === "Scale") { p.setValue(it.scale, true); done.scale = true; }
+                  if (want.rotation && p.displayName === "Rotation") { p.setValue(it.rotation, true); done.rotation = true; }
+                  if (want.position && p.displayName === "Position") {
+                    var __cur = [0.5, 0.5];
+                    try { __cur = p.getValue(); } catch (ep) {}
+                    var __nx = it.posX !== null ? (it.posX / __seqW) : __cur[0];
+                    var __ny = it.posY !== null ? (it.posY / __seqH) : __cur[1];
+                    p.setValue([__nx, __ny], true);
+                    done.position = true;
+                  }
+                } catch (e2) {}
+              }
+            }
+
+            var missing = [];
+            if (want.opacity && !done.opacity) missing.push("opacity");
+            if (want.scale && !done.scale) missing.push("scale");
+            if (want.rotation && !done.rotation) missing.push("rotation");
+            if (want.position && !done.position) missing.push("position");
+            r.applied = done;
+            r.success = (missing.length === 0);
+            if (missing.length) r.error = "properties not applied: " + missing.join(", ");
+          } catch (e) {
+            r.error = e.toString();
+          }
+          results.push(r);
+        }
+        var applied = 0;
+        for (var k = 0; k < results.length; k++) { if (results[k].success) applied++; }
+        return JSON.stringify({ success: (applied === specs.length), applied: applied, total: specs.length, results: results });
+      } catch (e) {
+        return JSON.stringify({ success: false, error: e.toString() });
+      }
+    `;
+    return await this.bridge.executeScript(script, 300000);
   }
 
   // Render Queue
